@@ -1,142 +1,173 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <queue>
 #include <limits>
-#include <string>
+#include <fstream>
 #include <sstream>
+#include <string>
 #include <chrono>
-#include <algorithm>
+
+using namespace std;
 
 struct Edge {
-    int to;
-    int weight;
+  int to;
+  int weight;
 };
 
-std::vector<std::vector<Edge>> loadGraph(const std::string& filename) {
-    std::ifstream file(filename);
-    std::string line;
-    std::vector<std::vector<Edge>> graph;
-    
-    int n, m;
-    while (std::getline(file, line)) {
-        if (line[0] == 'p') {
-            std::istringstream ss(line.substr(1));
-            std::string tmp;
-            ss >> tmp >> tmp >> n >> m;
-            graph.resize(n);
-        } else if (line[0] == 'a') {
-            int u, v, w;
-            std::istringstream ss(line.substr(1));
-            ss >> u >> v >> w;
-            graph[u - 1].push_back({v - 1, w});
-        }
+struct NodeComparator {
+  bool operator()(const pair<int, int> &a, const pair<int, int> &b) {
+    return a.second > b.second;
+  }
+};
+
+vector<int> dijkstra(const vector<vector<Edge>> &graph, int source) {
+  int numNodes = graph.size();
+
+  vector<int> distances(numNodes, numeric_limits<int>::max());
+  distances[source] = 0;
+
+  priority_queue<pair<int, int>, vector<pair<int, int>>, NodeComparator> heap;
+  heap.push(make_pair(source, 0));
+
+  while (!heap.empty()) {
+    int u = heap.top().first;
+    heap.pop();
+
+    for (const Edge &edge : graph[u]) {
+      int v = edge.to;
+      int newDistance = distances[u] + edge.weight;
+
+      if (newDistance < distances[v]) {
+        distances[v] = newDistance;
+        heap.push(make_pair(v, newDistance));
+      }
     }
-    return graph;
+  }
+
+  return distances;
 }
 
-std::vector<int> dijkstra(const std::vector<std::vector<Edge>>& graph, int source) {
-    int n = graph.size();
-    std::vector<int> distances(n, INT_MAX);
-    distances[source] = 0;
-    std::vector<int> predecessors(n, -1);
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
-    pq.push(std::make_pair(0, source));
-    
-    while (!pq.empty()) {
-        int u = pq.top().second;
-        int distance_u = pq.top().first;
-        pq.pop();
-        
-        if (distance_u > distances[u]) continue;
+vector<vector<Edge>> readGraph(const string &filename) {
+  vector<vector<Edge>> graph;
+  ifstream file(filename);
 
-        for (const Edge& edge : graph[u]) {
-            int v = edge.to;
-            int distance_v = distance_u + edge.weight;
-            if (distance_v < distances[v]) {
-                distances[v] = distance_v;
-                predecessors[v] = u;
-                pq.push(std::make_pair(distance_v, v));
-            }
-        }
+  if (file.is_open()) {
+    string line;
+    while (getline(file, line)) {
+      if (line == 'c') {
+        continue;
+      }
+
+      if (line == 'p') {
+        istringstream iss(line);
+        string dummy;
+        int numNodes, numEdges;
+        iss >> dummy >> dummy >> numNodes >> numEdges;
+        graph.resize(numNodes);
+      }
+
+      if (line == 'a') {
+        istringstream iss(line);
+        char dummy;
+        int from, to, weight;
+        iss >> dummy >> from >> to >> weight;
+        graph[from - 1].push_back({to - 1, weight});
+      }
     }
-    return distances;
+    file.close();
+  } else {
+    cerr << "Nie można otworzyć pliku: " << filename << endl;
+  }
+
+  return graph;
 }
 
-void processSources(const std::vector<std::vector<Edge>>& graph, const std::string& sourcesFile, const std::string& resultFile) {
-    std::ifstream srcFile(sourcesFile);
-    std::ofstream resFile(resultFile);
-    
-    std::string line;
-    auto start = std::chrono::high_resolution_clock::now();
-    
-    while (std::getline(srcFile, line)) {
-        if (line[0] == 's') {
-            int source;
-            std::istringstream ss(line.substr(1));
-            ss >> source;
-            source--;
-            std::vector<int> distances = dijkstra(graph, source);
-            
-            // Write result to file
-            resFile << "Dijkstra for source " << source + 1 << std::endl;
-            for (int i = 0; i < distances.size(); i++) {
-                resFile << "To vertex " << i + 1 << ": " << distances[i] << std::endl;
-            }
-        }
+vector<int> readSources(const string &filename) {
+  vector<int> sources;
+  ifstream file(filename);
+
+  if (file.is_open()) {
+    string line;
+    while (getline(file, line)) {
+      if (line == 's') {
+        istringstream iss(line);
+        char dummy;
+        int source;
+        iss >> dummy >> source;
+        sources.push_back(source - 1); 
+      }
     }
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> diff = end - start;
-    resFile << "Time to compute shortest paths: " << diff.count() << " seconds" << std::endl;
+    file.close();
+  } else {
+    cerr << "Nie można otworzyć pliku: " << filename << endl;
+  }
+
+  return sources;
 }
 
-void processPointToPoint(const std::vector<std::vector<Edge>>& graph, const std::string& pairsFile, const std::string& resultFile) {
-    std::ifstream pairFile(pairsFile);
-    std::ofstream resFile(resultFile);
-    
-    std::string line;
-    while (std::getline(pairFile, line)) {
-        if (line[0] == 'q') {
-            int source, target;
-            std::istringstream ss(line.substr(1));
-            ss >> source >> target;
-            source--; target--;
-            
-            std::vector<int> distances = dijkstra(graph, source);
-            
-            // Write result to file
-            resFile << "Shortest path from " << source + 1 << " to " << target + 1 << ": " << distances[target] << std::endl;
-        }
+void writeResults(const string &filename, const vector<vector<Edge>> &graph, const vector<int> &sources, const vector<vector<int>> &distances) {
+  ofstream file(filename);
+
+  if (file.is_open()) {
+    file << "c Wyniki testu dla grafu: " << endl;
+    file << "c " << endl;
+
+    file << "c Graf składa się z " << graph.size() << " węzłów i " << endl;
+    int numEdges = 0;
+    for (const auto &edges : graph) {
+      numEdges += edges.size();
     }
+    file << "c " << numEdges << " krawędzi." << endl;
+    file << "c " << endl;
+
+    for (int i = 0; i < sources.size(); ++i) {
+      file << "c Średni czas dla źródła " << sources[i] + 1 << ": "
+           << chrono::duration<double, milli>(distances[i]).count() << " ms" << endl;
+    }
+    file << "c" << endl;
+
+    for (int i = 0; i < sources.size(); ++i) {
+      file << "c Wyniki dla źródła " << sources[i] + 1 << ":" << endl;
+      for (int j = 1; j < distances[i].size(); ++j) {
+        file << "d " << sources[i] + 1 << " " << j << " " << distances[i][j] << endl;
+      }
+      file << "c" << endl;
+    }
+
+    file.close();
+  } else {
+    cerr << "Nie można otworzyć pliku: " << filename << endl;
+  }
 }
 
-int main(int argc, char* argv[]) {
-    if (argc < 5) {
-        std::cerr << "Usage: dijkstra -d <graph_file> -ss <sources_file> -oss <output_file>" << std::endl;
-        return 1;
+int main(int argc, char *argv[]) {
+  string graphFilename;
+  string sourcesFilename;
+  string resultsFilename;
+
+  for (int i = 1; i < argc; ++i) {
+    if (string(argv[i]) == "-d") {
+      graphFilename = argv[++i];
+    } else if (string(argv[i]) == "-ss") {
+      sourcesFilename = argv[++i];
+    } else if (string(argv[i]) == "-oss") {
+      resultsFilename = argv[++i];
     }
+  }
 
-    std::string graphFile;
-    std::string sourcesFile;
-    std::string resultFile;
+  vector<vector<Edge>> graph = readGraph(graphFilename);
+  vector<int> sources = readSources(sourcesFilename);
 
-    // Parse arguments
-    for (int i = 1; i < argc; i++) {
-        if (std::string(argv[i]) == "-d") {
-            graphFile = argv[++i];
-        } else if (std::string(argv[i]) == "-ss") {
-            sourcesFile = argv[++i];
-        } else if (std::string(argv[i]) == "-oss") {
-            resultFile = argv[++i];
-        }
-    }
+  vector<vector<int>> distances;
+  for (int source : sources) {
+    auto start = chrono::high_resolution_clock::now();
+    vector<int> dist = dijkstra(graph, source);
+    auto end = chrono::high_resolution_clock::now();
+    dist.insert(dist.begin(), chrono::duration_cast<chrono::microseconds>(end - start).count());
+    distances.push_back(dist);
+  }
 
-    // Load graph
-    std::vector<std::vector<Edge>> graph = loadGraph(graphFile);
+  writeResults(resultsFilename, graph, sources, distances);
 
-    // Process sources (Dijkstra for all sources)
-    processSources(graph, sourcesFile, resultFile);
-    
-    return 0;
+  return 0;
 }
