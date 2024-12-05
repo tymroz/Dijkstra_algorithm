@@ -1,31 +1,24 @@
 #include "dijkstra.h"
-#include <queue>
-#include <limits>
-#include <algorithm>
+#include <iostream>
+#include <fstream>
 
-std::vector<int> dijkstra(const std::vector<std::vector<Edge>>& graph, int source) {
-    int n = graph.size();
-    std::vector<int> distances(n, INT_MAX);
-    distances[source] = 0;
-    std::vector<int> predecessors(n, -1);
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<std::pair<int, int>>> pq;
-    pq.push(std::make_pair(0, source));
-    while (!pq.empty()) {
-        int u = pq.top().second;
-        int distance_u = pq.top().first;
-        pq.pop();
-        if (distance_u > distances[u]) {
-            continue;
-        }
-        for (const Edge& edge : graph[u]) {
-            int v = edge.to;
-            int distance_v = distance_u + edge.weight;
-            if (distance_v < distances[v]) {
-                distances[v] = distance_v;
-                predecessors[v] = u;
-                pq.push(std::make_pair(distance_v, v));
-            }
-        }
+int main() {
+    std::ifstream input_file("graf_10.gr");
+    int num_vertices, num_edges;
+    input_file >> num_vertices >> num_edges;
+    Graph graph(num_vertices);
+    for (int i = 0; i < num_edges; ++i) {
+        int from, to, cost;
+        input_file >> from >> to >> cost;
+        graph.add_edge(from - 1, to - 1, cost);
     }
-    return distances;
+
+    int source = 0;
+    std::vector<int> distances = graph.dijkstra(source);
+
+    for (int i = 0; i < num_vertices; ++i) {
+        std::cout << "Odleglosc od wierzcholka " << source+1 << " do wierzcholka " << i + 1 << ": " << distances[i] << std::endl;
+    }
+
+    return 0;
 }

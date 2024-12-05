@@ -1,173 +1,131 @@
+#include "dijkstra.h"
 #include <iostream>
-#include <vector>
-#include <queue>
-#include <limits>
 #include <fstream>
-#include <sstream>
 #include <string>
+#include <sstream>
 #include <chrono>
+#include <limits>
 
 using namespace std;
 
-struct Edge {
-  int to;
-  int weight;
-};
-
-struct NodeComparator {
-  bool operator()(const pair<int, int> &a, const pair<int, int> &b) {
-    return a.second > b.second;
-  }
-};
-
-vector<int> dijkstra(const vector<vector<Edge>> &graph, int source) {
-  int numNodes = graph.size();
-
-  vector<int> distances(numNodes, numeric_limits<int>::max());
-  distances[source] = 0;
-
-  priority_queue<pair<int, int>, vector<pair<int, int>>, NodeComparator> heap;
-  heap.push(make_pair(source, 0));
-
-  while (!heap.empty()) {
-    int u = heap.top().first;
-    heap.pop();
-
-    for (const Edge &edge : graph[u]) {
-      int v = edge.to;
-      int newDistance = distances[u] + edge.weight;
-
-      if (newDistance < distances[v]) {
-        distances[v] = newDistance;
-        heap.push(make_pair(v, newDistance));
-      }
-    }
-  }
-
-  return distances;
-}
-
-vector<vector<Edge>> readGraph(const string &filename) {
-  vector<vector<Edge>> graph;
-  ifstream file(filename);
-
-  if (file.is_open()) {
+// Funkcja wczytująca graf z pliku zgodnie z formatem aod_lab3
+Graph load_graph(const string& filename) {
+    ifstream file(filename);
     string line;
+    int num_vertices, num_edges;
+
+    // Pomijanie komentarzy i wczytywanie liczby wierzchołków i krawędzi
     while (getline(file, line)) {
-      if (line == 'c') {
-        continue;
-      }
-
-      if (line == 'p') {
-        istringstream iss(line);
-        string dummy;
-        int numNodes, numEdges;
-        iss >> dummy >> dummy >> numNodes >> numEdges;
-        graph.resize(numNodes);
-      }
-
-      if (line == 'a') {
-        istringstream iss(line);
-        char dummy;
-        int from, to, weight;
-        iss >> dummy >> from >> to >> weight;
-        graph[from - 1].push_back({to - 1, weight});
-      }
+        if (line == 'c') { 
+            continue;
+        } else if (line == 'p') { 
+            stringstream ss(line);
+            string p, sp, type;
+            ss >> p >> sp >> type >> num_vertices >> num_edges;
+            break;
+        }
     }
-    file.close();
-  } else {
-    cerr << "Nie można otworzyć pliku: " << filename << endl;
-  }
 
-  return graph;
+    Graph graph(num_vertices);
+
+    // Wczytywanie krawędzi
+    while (getline(file, line)) {
+        if (line == 'a') { 
+            stringstream ss(line);
+            string a, sp;
+            int from, to, cost;
+            ss >> a >> sp >> from >> to >> cost;
+            graph.add_edge(from - 1, to - 1, cost); 
+        }
+    }
+
+    return graph;
 }
 
-vector<int> readSources(const string &filename) {
-  vector<int> sources;
-  ifstream file(filename);
-
-  if (file.is_open()) {
+// Funkcja wczytująca listę źródeł z pliku zgodnie z formatem aod_lab3
+vector<int> load_sources(const string& filename) {
+    ifstream file(filename);
     string line;
+    vector<int> sources;
+
     while (getline(file, line)) {
-      if (line == 's') {
-        istringstream iss(line);
-        char dummy;
-        int source;
-        iss >> dummy >> source;
-        sources.push_back(source - 1); 
-      }
+        if (line == 's') {
+            stringstream ss(line);
+            string s;
+            int source;
+            ss >> s >> source;
+            sources.push_back(source - 1); 
+        }
     }
-    file.close();
-  } else {
-    cerr << "Nie można otworzyć pliku: " << filename << endl;
-  }
 
-  return sources;
+    return sources;
 }
 
-void writeResults(const string &filename, const vector<vector<Edge>> &graph, const vector<int> &sources, const vector<vector<int>> &distances) {
-  ofstream file(filename);
+// Funkcja zapisująca wyniki do pliku zgodnie z formatem aod_lab3
+void save_results(const string& data_filename, const string& sources_filename,
+                  const vector<int>& distances, int source, 
+                  double elapsed_seconds, const string& output_filename) {
 
-  if (file.is_open()) {
-    file << "c Wyniki testu dla grafu: " << endl;
-    file << "c " << endl;
+    ofstream file(output_filename, ios_base::app);
 
-    file << "c Graf składa się z " << graph.size() << " węzłów i " << endl;
-    int numEdges = 0;
-    for (const auto &edges : graph) {
-      numEdges += edges.size();
+    file << "c Wyniki dla zródła: " << source + 1 << endl; 
+    file << "f " << data_filename << " " << sources_filename << endl;
+
+    // Informacje o grafie
+    file << "g " << distances.size() << " " << " " /* liczba krawędzi - brak w oryginalnym kodzie */
+         << " " << " " /* min cost - brak w oryginalnym kodzie */
+         << " " << " " /* max cost - brak w oryginalnym kodzie */ << endl;
+
+    // Średni czas 
+    file << "t " << elapsed_seconds * 1000 << endl; 
+
+    // Odległości
+    for (int i = 0; i < distances.size(); ++i) {
+        if (distances[i] == numeric_limits<int>::max()) {
+            file << "c Wierzchołek " << i + 1 << " jest nieosiągalny ze źródła " << source + 1 << endl;
+        } else {
+            file << "d " << source + 1 << " " << i + 1 << " " << distances[i] << endl; 
+        }
     }
-    file << "c " << numEdges << " krawędzi." << endl;
-    file << "c " << endl;
-
-    for (int i = 0; i < sources.size(); ++i) {
-      file << "c Średni czas dla źródła " << sources[i] + 1 << ": "
-           << chrono::duration<double, milli>(distances[i]).count() << " ms" << endl;
-    }
-    file << "c" << endl;
-
-    for (int i = 0; i < sources.size(); ++i) {
-      file << "c Wyniki dla źródła " << sources[i] + 1 << ":" << endl;
-      for (int j = 1; j < distances[i].size(); ++j) {
-        file << "d " << sources[i] + 1 << " " << j << " " << distances[i][j] << endl;
-      }
-      file << "c" << endl;
-    }
-
-    file.close();
-  } else {
-    cerr << "Nie można otworzyć pliku: " << filename << endl;
-  }
+    file << "-------------------------------------------------------------" << endl;
 }
 
-int main(int argc, char *argv[]) {
-  string graphFilename;
-  string sourcesFilename;
-  string resultsFilename;
+int main(int argc, char* argv[]) {
+    string graph_filename, sources_filename, output_filename;
 
-  for (int i = 1; i < argc; ++i) {
-    if (string(argv[i]) == "-d") {
-      graphFilename = argv[++i];
-    } else if (string(argv[i]) == "-ss") {
-      sourcesFilename = argv[++i];
-    } else if (string(argv[i]) == "-oss") {
-      resultsFilename = argv[++i];
+    // Parsowanie argumentów wiersza poleceń
+    for (int i = 1; i < argc; ++i) {
+        string arg(argv[i]);
+        if (arg == "-d") {
+            graph_filename = argv[++i];
+        } else if (arg == "-ss") {
+            sources_filename = argv[++i];
+        } else if (arg == "-oss") {
+            output_filename = argv[++i];
+        }
     }
-  }
 
-  vector<vector<Edge>> graph = readGraph(graphFilename);
-  vector<int> sources = readSources(sourcesFilename);
+    // Wczytanie grafu
+    Graph graph = load_graph(graph_filename);
 
-  vector<vector<int>> distances;
-  for (int source : sources) {
-    auto start = chrono::high_resolution_clock::now();
-    vector<int> dist = dijkstra(graph, source);
-    auto end = chrono::high_resolution_clock::now();
-    dist.insert(dist.begin(), chrono::duration_cast<chrono::microseconds>(end - start).count());
-    distances.push_back(dist);
-  }
+    // Wczytanie listy źródeł
+    vector<int> sources = load_sources(sources_filename);
 
-  writeResults(resultsFilename, graph, sources, distances);
+    // Uruchomienie algorytmu Dijkstry dla każdego źródła
+    for (int source : sources) {
+        auto start_time = chrono::high_resolution_clock::now();
+        vector<int> distances = graph.dijkstra(source);
+        auto end_time = chrono::high_resolution_clock::now();
+        chrono::duration<double> elapsed_seconds = end_time - start_time;
 
-  return 0;
+        // Zapis wyników
+        save_results(graph_filename, sources_filename, distances, source, 
+                    elapsed_seconds.count(), output_filename);
+
+        // Wyświetlenie czasu wykonania - opcjonalnie
+        cout << "Czas wykonania dla źródła " << source + 1 << ": " 
+             << elapsed_seconds.count() << " s" << endl;
+    }
+
+    return 0;
 }
