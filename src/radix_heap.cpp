@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         auto start = std::chrono::high_resolution_clock::now();
         std::vector<long long> distances = graph.radix_heap(source - 1);
         auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         total_time = total_time + duration.count();
 //        std::cout << "Dijkstra, zrodlo " << source << ":" << std::endl;
 //        for (int i = 0; i < vert; i++) {

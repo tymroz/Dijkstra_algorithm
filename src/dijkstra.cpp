@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         auto start = std::chrono::high_resolution_clock::now();
         std::vector<long long> distances = graph.dijkstra(source - 1);
         auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         total_time = total_time + duration.count();
 //        std::cout << "Dijkstra, zrodlo " << source << ":" << std::endl;
 //        for (int i = 0; i < vert; i++) {
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 //    output_file << "c siec sklada sie z " << vert << " wierzcholkow, " << edges << " lukow,\n";
 //    output_file << "c koszty naleza do przedzialu : []" << min_cost <<"," << max_cost <<"]\n";
     output_file << "g " << vert << " " << edges << " " << min_cost << " " << max_cost << "\n";
-    output_file << "t " << avg_time << "\n";
+    output_file << "t " << std::fixed << avg_time << "\n";
 
     output_file.close();
 

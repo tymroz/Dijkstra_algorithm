@@ -75,8 +75,11 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
                 long long weight = edge.cost;
 
                 if (distances[u] + weight < distances[v]) {
+                    if(distances[v] < std::numeric_limits<long long>::max()){
+                        buckets[distances[v] % (max_cost+1)].remove(v);
+                    }
                     distances[v] = distances[u] + weight;
-                    buckets[std::min(max_cost, distances[v])].push_back(v);
+                    buckets[distances[v] % (max_cost+1)].push_back(v);
                 }
             }
         }
