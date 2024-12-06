@@ -2,6 +2,8 @@
 #include <queue>
 #include <limits>
 #include <list>
+#include <array>
+#include <cassert>
 
 struct Edge {
     long long to;
@@ -30,63 +32,70 @@ void Graph::add_edge(long long from, long long to, long long cost) {
 }
 
 class RadixHeap {
-private:
-  std::vector<std::list<int>> buckets;
-  int minDistance;
-  int maxDistance;
-  int currentBucket;
-
 public:
-  RadixHeap() : minDistance(0), maxDistance(0), currentBucket(0) {}
+    RadixHeap() : size_(0), last_(0), buckets_(num_buckets), buckets_min_(num_buckets, std::numeric_limits<long long>::max()) {}
 
-  void insert(int node, int distance);
-  int findMin();
-  void deleteMin();
-  bool empty();
+    void insert(long long node, long long distance) {
+        if (last_ <= distance) {
+            size_++;
+            long long bucket_index = find_bucket(distance, last_);
+            buckets_[bucket_index].emplace_back(distance, node);
+            buckets_min_[bucket_index] = std::min(buckets_min_[bucket_index], distance);
+        }
+    }
+
+    long long findMin() {
+        pull();
+        return buckets_[0].back().second;
+    }
+
+    void deleteMin() {
+        pull();
+        buckets_[0].pop_back();
+        size_--;
+    }
+
+    bool empty() const {
+        return size_ == 0;
+    }
+
+private:
+    long long size_;
+    long long last_;
+    long long num_buckets = std::numeric_limits<long long>::digits + 1;
+    std::vector<std::vector<std::pair<long long, long long>>> buckets_;
+    std::vector<long long> buckets_min_;
+
+    long long find_bucket(long long x, long long last) const {
+        if (x == last) {
+            return 0;
+        } else {
+            return 64 - __builtin_clzll(x ^ last);
+        }
+    }
+
+    void pull() {
+        if (size_ > 0) {
+            if (!buckets_[0].empty()) {
+                return;
+            } else {
+                long long i;
+                for (i = 1; buckets_[i].empty(); ++i);
+
+                last_ = buckets_min_[i];
+
+                for (const auto& [distance, node] : buckets_[i]) {
+                    long long new_bucket_index = find_bucket(distance, last_);
+                    buckets_[new_bucket_index].emplace_back(distance, node);
+                    buckets_min_[new_bucket_index] = std::min(buckets_min_[new_bucket_index], distance);
+                }
+                buckets_[i].clear();
+                buckets_min_[i] = std::numeric_limits<long long>::max();
+            }
+        }
+    }
 };
 
-void RadixHeap::insert(int node, int distance) {
-    if (buckets.empty()) {
-      buckets.push_back({});
-      minDistance = distance;
-      maxDistance = distance;
-      currentBucket = 0;
-    }
-
-    if (distance < minDistance) {
-      minDistance = distance;
-      currentBucket = 0;
-    }
-
-    if (distance > maxDistance) {
-      maxDistance = distance;
-      buckets.resize(maxDistance - minDistance + 1);
-    }
-
-    buckets[distance - minDistance].push_back(node);
-}
-
-int RadixHeap::findMin() {
-    while (buckets[currentBucket].empty()) {
-      currentBucket++;
-    }
-    return buckets[currentBucket].front();
-}
-
-void RadixHeap::deleteMin() {
-    buckets[currentBucket].pop_front();
-    if (buckets[currentBucket].empty() && currentBucket == maxDistance - minDistance) {
-      while (buckets.back().empty()) {
-        buckets.pop_back();
-        maxDistance--;
-      }
-      currentBucket = 0;
-    }
-}
-
-bool RadixHeap::empty() {
-    return buckets.empty();
-}
 
 // Dijkstra O(n^2)
 std::vector<long long> Graph::dijkstra(long long source) {
@@ -143,8 +152,8 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
 // RadixHeap O(m + ln(nC)) -- m-number of edges, #n-number of verticles, C-max_cost
 std::vector<long long> Graph::radix_heap(long long source) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
-
     RadixHeap heap;
+    
     heap.insert(source, 0);
     distances[source] = 0;
 
