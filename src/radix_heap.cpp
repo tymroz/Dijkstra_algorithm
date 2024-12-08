@@ -104,9 +104,9 @@ int main(int argc, char* argv[]) {
         output_file << "g " << vert << " " << edges << " " << min_cost << " " << max_cost << "\n";
 
         for (const auto& pair : pairs) {
-            auto start = std::chrono::high_resolution_clock::now();
+            //auto start = std::chrono::high_resolution_clock::now();
             std::vector<long long> distances = graph.radix_heap(pair.first);
-            auto stop = std::chrono::high_resolution_clock::now();
+            //auto stop = std::chrono::high_resolution_clock::now();
             if (distances[pair.second] == std::numeric_limits<long long>::max()) {
                 output_file << "d " << pair.first + 1 << " " << pair.second + 1 << " INF\n";
             } else {

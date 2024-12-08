@@ -1,6 +1,6 @@
 BUILD_DIR="build"
-TESTS_DIR="test/Long-C"
-RESULTS_DIR="wyniki/Long-C"
+TESTS_DIR="test/USA-road-t"
+RESULTS_DIR="wyniki/USA-road-t"
 
 for program in "$BUILD_DIR"/*; do
 
