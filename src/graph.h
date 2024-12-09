@@ -124,22 +124,30 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
 // RadixHeap O(m + nln(C)) -- m-number of edges, #n-number of verticles, C-max_cost
 std::vector<long long> Graph::radix_heap(long long source, long long max_cost) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
+    std::vector<bool> visited(num_vertices_, false);
+
     RadixHeap heap(max_cost);
-    
+
     heap.insert(source, 0);
     distances[source] = 0;
 
     while (!heap.empty()) {
-        long long u = heap.getMin();
+        long long u = heap.findMin();
         heap.deleteMin();
+
+        if (visited[u]) {
+            continue;
+        }
+
+        visited[u] = true;
 
         for (const Edge& edge : adjacency_list_[u]) {
             long long v = edge.to;
             long long weight = edge.cost;
 
-            if (distances[u] + weight < distances[v]) {
+            if (!visited[v] && distances[u] + weight < distances[v]) {
                 distances[v] = distances[u] + weight;
-                heap.insert(v, distances[u] + weight); 
+                heap.decreaseKey(v, distances[v]);
             }
         }
     }

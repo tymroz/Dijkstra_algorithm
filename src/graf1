@@ -1,0 +1,23 @@
+std::vector<long long> Graph::radix_heap(long long source, long long max_cost) {
+    std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
+    RadixHeap heap(max_cost);
+    
+    heap.insert(source, 0);
+    distances[source] = 0;
+
+    while (!heap.empty()) {
+        long long u = heap.getMin();
+        heap.deleteMin();
+
+        for (const Edge& edge : adjacency_list_[u]) {
+            long long v = edge.to;
+            long long weight = edge.cost;
+
+            if (distances[u] + weight < distances[v]) {
+                distances[v] = distances[u] + weight;
+                heap.insert(v, distances[u] + weight); 
+            }
+        }
+    }
+    return distances;
+}
