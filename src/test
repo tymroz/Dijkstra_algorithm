@@ -1,0 +1,57 @@
+void dijkstra_dial(vector<list<Node>>& graph, int source, int C) {
+    // Inicjalizacja tablicy odległości
+    vector<int> distances(graph.size(), INT_MAX);
+    distances[source] = 0;
+
+    // Utworzenie listy kubełków
+    vector<list<int>> buckets(C + 1);
+
+    // Dodanie wierzchołka źródłowego do odpowiedniego kubełka
+    buckets.push_back(source);
+
+    // Indeks aktualnego kubełka
+    int currentBucket = 0;
+
+    // Pętla główna algorytmu
+    while (true) {
+        // Przeszukiwanie kubełków w poszukiwaniu niepustego
+        while (buckets[currentBucket].empty()) {
+            currentBucket = (currentBucket + 1) % (C + 1);
+        }
+
+        // Przetwarzanie wierzchołków z aktualnego kubełka
+        for (int node : buckets[currentBucket]) {
+            // Relaksacja krawędzi wychodzących z wierzchołka
+            for (Node neighbor : graph[node]) {
+                if (distances[neighbor.id] > distances[node] + neighbor.distance) {
+                    // Usunięcie sąsiada ze starego kubełka
+                    buckets[distances[neighbor.id] % (C + 1)].remove(neighbor.id);
+
+                    // Aktualizacja odległości
+                    distances[neighbor.id] = distances[node] + neighbor.distance;
+
+                    // Dodanie sąsiada do nowego kubełka
+                    buckets[distances[neighbor.id] % (C + 1)].push_back(neighbor.id);
+                }
+            }
+        }
+
+        // Opróżnienie aktualnego kubełka
+        buckets[currentBucket].clear();
+
+        // Przejście do następnego kubełka
+        currentBucket = (currentBucket + 1) % (C + 1);
+
+        // Sprawdzenie warunku zakończenia
+        bool allVisited = true;
+        for (int i = 0; i < graph.size(); i++) {
+            if (distances[i] == INT_MAX) {
+                allVisited = false;
+                break;
+            }
+        }
+
+        if (allVisited) {
+            break;
+        }
+    }
