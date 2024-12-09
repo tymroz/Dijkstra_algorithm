@@ -7,9 +7,85 @@
 #include <cmath>
 
 class RadixHeap {
+<<<<<<< HEAD
 public:
     RadixHeap(long long nC) : K(static_cast<int>(log2(nC))), buckets(K + 1), range(K + 1), distances(nC, std::numeric_limits<long long>::max()), nC(nC) {}
     
 private:
 
+=======
+private:
+    int C;
+    int K;
+    vector<list<int>> buckets;
+    vector<int> range;
+
+public:
+    RadixHeap(int C) : C(C) {
+        K = ceil(log2(C));
+        buckets.resize(K + 1);
+        range.resize(K + 1);
+
+        range = 0;
+        for (int k = 1; k <= K; k++) {
+            range[k] = pow(2, k - 1);
+        }
+    }
+
+    void insert(int node, int distance) {
+        int bucketIndex = getBucketIndex(distance);
+        buckets[bucketIndex].push_back(node);
+    }
+
+    int getMin() {
+        int k = 0;
+        while (buckets[k].empty()) {
+            k++;
+        }
+
+        if (k <= 1) {
+            return buckets[k].front();
+        }
+
+        int dmin = distance[buckets[k].front()];
+        redistribute(k, dmin);
+
+        return buckets.front();
+    }
+
+    void deleteMin() {
+        buckets.pop_front();
+    }
+
+    void decreaseKey(int node, int newDistance) {
+        int oldBucketIndex = getBucketIndex(distance[node]);
+        buckets[oldBucketIndex].remove(node);
+
+        insert(node, newDistance);
+    }
+
+private:
+    int getBucketIndex(int distance) {
+        for (int k = 0; k <= K; k++) {
+            if (distance >= range[k] && (k == K || distance < range[k + 1])) {
+                return k;
+            }
+        }
+
+        return -1; 
+    }
+
+    void redistribute(int k, int dmin) {
+        range = dmin;
+        for (int i = 1; i < k; i++) {
+            range[i] = range + pow(2, i - 1);
+        }
+
+        for (int node : buckets[k]) {
+            int newBucketIndex = getBucketIndex(distance[node]);
+            buckets[newBucketIndex].push_back(node);
+        }
+        buckets[k].clear();
+    }
+>>>>>>> 7a68b90fdf082d7c5a5b79111aeb3ed94ac66c91
 };

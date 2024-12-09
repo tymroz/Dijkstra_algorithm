@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
             auto start = std::chrono::high_resolution_clock::now();
             std::vector<long long> distances = graph.dial(source - 1, max_cost);
             auto stop = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
             total_time += duration.count();
         }
         double avg_time = total_time / sources.size();
