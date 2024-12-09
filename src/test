@@ -1,57 +1,94 @@
-void dijkstra_dial(vector<list<Node>>& graph, int source, int C) {
-    // Inicjalizacja tablicy odległości
-    vector<int> distances(graph.size(), INT_MAX);
-    distances[source] = 0;
+class RadixHeap {
+private:
+    int C; // Maksymalna wartość kosztu krawędzi
+    int K; // Liczba kubełków: K = ⌈log(nC)⌉
+    vector<list<int>> buckets; // Lista kubełków
+    vector<int> range; // Zakresy kubełków
 
-    // Utworzenie listy kubełków
-    vector<list<int>> buckets(C + 1);
+public:
+    // Konstruktor
+    RadixHeap(int C) : C(C) {
+        K = ceil(log2(C));
+        buckets.resize(K + 1);
+        range.resize(K + 1);
 
-    // Dodanie wierzchołka źródłowego do odpowiedniego kubełka
-    buckets.push_back(source);
-
-    // Indeks aktualnego kubełka
-    int currentBucket = 0;
-
-    // Pętla główna algorytmu
-    while (true) {
-        // Przeszukiwanie kubełków w poszukiwaniu niepustego
-        while (buckets[currentBucket].empty()) {
-            currentBucket = (currentBucket + 1) % (C + 1);
-        }
-
-        // Przetwarzanie wierzchołków z aktualnego kubełka
-        for (int node : buckets[currentBucket]) {
-            // Relaksacja krawędzi wychodzących z wierzchołka
-            for (Node neighbor : graph[node]) {
-                if (distances[neighbor.id] > distances[node] + neighbor.distance) {
-                    // Usunięcie sąsiada ze starego kubełka
-                    buckets[distances[neighbor.id] % (C + 1)].remove(neighbor.id);
-
-                    // Aktualizacja odległości
-                    distances[neighbor.id] = distances[node] + neighbor.distance;
-
-                    // Dodanie sąsiada do nowego kubełka
-                    buckets[distances[neighbor.id] % (C + 1)].push_back(neighbor.id);
-                }
-            }
-        }
-
-        // Opróżnienie aktualnego kubełka
-        buckets[currentBucket].clear();
-
-        // Przejście do następnego kubełka
-        currentBucket = (currentBucket + 1) % (C + 1);
-
-        // Sprawdzenie warunku zakończenia
-        bool allVisited = true;
-        for (int i = 0; i < graph.size(); i++) {
-            if (distances[i] == INT_MAX) {
-                allVisited = false;
-                break;
-            }
-        }
-
-        if (allVisited) {
-            break;
+        // Inicjalizacja zakresów kubełków [1-3]
+        range = 0;
+        for (int k = 1; k <= K; k++) {
+            range[k] = pow(2, k - 1);
         }
     }
+
+    // Dodanie węzła do kubełka
+    void insert(int node, int distance) {
+        int bucketIndex = getBucketIndex(distance);
+        buckets[bucketIndex].push_back(node);
+    }
+
+    // Pobranie węzła o minimalnej etykiecie tymczasowej
+    int getMin() {
+        // Szukanie pierwszego niepustego kubełka [4, 5]
+        int k = 0;
+        while (buckets[k].empty()) {
+            k++;
+        }
+
+        // Jeśli kubełek ma szerokość 1, zwracamy pierwszy element [4, 5]
+        if (k <= 1) {
+            return buckets[k].front();
+        }
+
+        // W przeciwnym razie rozdzielamy zakres kubełka i przenosimy węzły [4-6]
+        int dmin = distance[buckets[k].front()];
+        redistribute(k, dmin);
+
+        // Zwracamy węzeł z kubełka 0
+        return buckets.front();
+    }
+
+    // Usunięcie węzła o minimalnej etykiecie tymczasowej
+    void deleteMin() {
+        buckets.pop_front();
+    }
+
+    // Aktualizacja etykiety tymczasowej węzła
+    void decreaseKey(int node, int newDistance) {
+        // Usunięcie węzła ze starego kubełka
+        int oldBucketIndex = getBucketIndex(distance[node]);
+        buckets[oldBucketIndex].remove(node);
+
+        // Dodanie węzła do nowego kubełka
+        insert(node, newDistance);
+    }
+
+private:
+    // Pobranie indeksu kubełka na podstawie etykiety tymczasowej
+    int getBucketIndex(int distance) {
+        // Szukanie kubełka, do którego należy dana etykieta [2]
+        for (int k = 0; k <= K; k++) {
+            if (distance >= range[k] && (k == K || distance < range[k + 1])) {
+                return k;
+            }
+        }
+
+        return -1; // Błąd, nie powinno się zdarzyć
+    }
+
+    // Rozdzielenie zakresu kubełka i przeniesienie węzłów [4, 6, 7]
+    void redistribute(int k, int dmin) {
+        // Ustawienie nowych zakresów kubełków [6]
+        range = dmin;
+        for (int i = 1; i < k; i++) {
+            range[i] = range + pow(2, i - 1);
+        }
+
+        // Przeniesienie węzłów do odpowiednich kubełków [6]
+        for (int node : buckets[k]) {
+            int newBucketIndex = getBucketIndex(distance[node]);
+            buckets[newBucketIndex].push_back(node);
+        }
+
+        // Opróżnienie kubełka k [7]
+        buckets[k].clear();
+    }
+};
