@@ -18,7 +18,7 @@ public:
     void add_edge(long long from, long long to, long long cost);
     std::vector<long long> dijkstra(long long source);
     std::vector<long long> dial(long long source, long long max_cost);
-    std::vector<long long> radix_heap(long long source, long long max_cost);
+    std::vector<long long> radix_heap(long long source);
 private:
     long long num_vertices_;
     std::vector<std::vector<Edge>> adjacency_list_; ///mozna uzyc unordered map
@@ -97,6 +97,8 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
             break;
         }
     }
+    return distances;
+}
     /*
     for(long long i=0; i<=max_cost; i++){
         while(!buckets[i].empty()) {
@@ -118,16 +120,12 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
             }
         }
     }*/
-    return distances;
-}
 
 // RadixHeap O(m + nln(C)) -- m-number of edges, #n-number of verticles, C-max_cost
-std::vector<long long> Graph::radix_heap(long long source, long long max_cost) {
+std::vector<long long> Graph::radix_heap(long long source) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
-    std::vector<bool> visited(num_vertices_, false);
-
-    RadixHeap heap(max_cost);
-
+    RadixHeap heap;
+    
     heap.insert(source, 0);
     distances[source] = 0;
 
@@ -135,19 +133,13 @@ std::vector<long long> Graph::radix_heap(long long source, long long max_cost) {
         long long u = heap.findMin();
         heap.deleteMin();
 
-        if (visited[u]) {
-            continue;
-        }
-
-        visited[u] = true;
-
         for (const Edge& edge : adjacency_list_[u]) {
             long long v = edge.to;
             long long weight = edge.cost;
 
-            if (!visited[v] && distances[u] + weight < distances[v]) {
+            if (distances[u] + weight < distances[v]) {
                 distances[v] = distances[u] + weight;
-                heap.decreaseKey(v, distances[v]);
+                heap.insert(v, distances[u] + weight); 
             }
         }
     }
