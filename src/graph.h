@@ -97,6 +97,8 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
             break;
         }
     }
+    return distances;
+}
     /*
     for(long long i=0; i<=max_cost; i++){
         while(!buckets[i].empty()) {
@@ -118,8 +120,6 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
             }
         }
     }*/
-    return distances;
-}
 
 // RadixHeap O(m + nln(C)) -- m-number of edges, #n-number of verticles, C-max_cost
 std::vector<long long> Graph::radix_heap(long long source, long long max_cost) {
