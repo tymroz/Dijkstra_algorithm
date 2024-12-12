@@ -66,8 +66,9 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
     buckets[0].push_back(source);
     long long currentBucket = 0;
 
-    std::vector<bool> visited(num_vertices_, false);
-    while (1) {
+    //std::vector<bool> visited(num_vertices_, false);
+    long long visited = 0;
+    while (visited <= num_vertices_) {
         while (buckets[currentBucket].empty()){
             currentBucket = (currentBucket+1) % (max_cost+1);
         }
@@ -75,7 +76,7 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
         for (long long u: buckets[currentBucket]){
             //long long u = buckets[currentBucket].front();
             //buckets[currentBucket].pop_front();
-            visited[u]=true;
+            visited += 1;
             
             for (const Edge& edge : adjacency_list_[u]) {
                 long long v = edge.to;
@@ -91,7 +92,7 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
         buckets[currentBucket].clear();
         currentBucket = (currentBucket+1) % (max_cost+1);
         
-        bool allVisited=true;
+        /*bool allVisited=true;
         for (long long i=0; i < num_vertices_; i++){
             if(!visited[i]){
                 allVisited=false;
@@ -103,7 +104,7 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
             break;
         }
 
-        /*bool allVisited = true;
+        bool allVisited = true;
         for (long long i = 0; i < num_vertices_; i++) {
             if (distances[i] == std::numeric_limits<long long>::max()) {
                 allVisited = false;
