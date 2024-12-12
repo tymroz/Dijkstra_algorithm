@@ -33,7 +33,7 @@ private:
                 return;
             } else {
                 long long i;
-                for (i = 1; buckets_[i].empty(); ++i);
+                for (i = 1; buckets_[i].empty(); i++);
 
                 last_ = buckets_min_[i];
 
