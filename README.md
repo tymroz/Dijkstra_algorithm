@@ -12,9 +12,13 @@ Pliki `dial.cpp`, `dijkstra.cpp`, `radix_heap.cpp` odpowiadają za odpowiednie w
 Projekt można skompilować poleceniem `make`. Spowoduje to skompilowanie plików żródłowych i umieszczenie plików wykonywalnych w katalogu build.
 
 Przykładowe uruchomienie: 
-```dijkstra -d graph.gr -ss sources.ss -oss results.ss.res```
+```
+dijkstra -d graph.gr -ss sources.ss -oss results.ss.res
+```
 Program wyznaczy średni czas znajdowania najkrótszych ścieżek w grafie.
 
 Istnieje również opcja uruchomienia z flagą -p2p. Przykład:
-```dijkstra -d graph.gr -ss pairs.p2p -oss results.p2p.res```
+```
+dijkstra -d graph.gr -ss pairs.p2p -oss results.p2p.res
+```
 Program wyznaczy długość najkrótszej ścieżki między parą wierzchołków.
