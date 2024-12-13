@@ -10,3 +10,11 @@ Funkcje `dijkstra`, `dial`, `radix_heap` zostały zdefiniowane w pliku `Graph.hp
 Pliki `dial.cpp`, `dijkstra.cpp`, `radix_heap.cpp` odpowiadają za odpowiednie wczytanie danych wejściowych, pomiar czasu wykonania algorytmów oraz zapis danych wyjściowych do pliku wynikowego.
 
 Projekt można skompilować poleceniem `make`. Spowoduje to skompilowanie plików żródłowych i umieszczenie plików wykonywalnych w katalogu build.
+
+Przykładowe uruchomienie: 
+```dijkstra -d graph.gr -ss sources.ss -oss results.ss.res```
+Program wyznaczy średni czas znajdowania najkrótszych ścieżek w grafie.
+
+Istnieje również opcja uruchomienia z flagą -p2p. Przykład:
+```dijkstra -d graph.gr -ss pairs.p2p -oss results.p2p.res```
+Program wyznaczy długość najkrótszej ścieżki między parą wierzchołków.
