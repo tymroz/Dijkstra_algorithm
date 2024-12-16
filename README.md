@@ -1,4 +1,3 @@
-# Autor: Tymoteusz Roźmiarek
 ## Projekt implementuje trzy warianty algorytmu Dijkstry, służącego do znajdywania najkrótszych ścieżek w grafie:
 1) wariant podstawowy, wykorzystujący kolejkę priorytetową,
 2) algorytm Diala wykorzystujący C+1 kubełków,
