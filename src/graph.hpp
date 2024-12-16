@@ -21,7 +21,7 @@ public:
     std::vector<long long> radix_heap(long long source);
 private:
     long long num_vertices_;
-    std::vector<std::vector<Edge>> adjacency_list_; ///mozna uzyc unordered map
+    std::vector<std::vector<Edge>> adjacency_list_;
 };
 
 Graph::Graph(long long num_vertices) : num_vertices_(num_vertices) {
@@ -32,7 +32,6 @@ void Graph::add_edge(long long from, long long to, long long cost) {
     adjacency_list_[from].push_back({to, cost});
 }
 
-// Dijkstra O(n^2)
 std::vector<long long> Graph::dijkstra(long long source) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
     distances[source] = 0;
@@ -57,7 +56,6 @@ std::vector<long long> Graph::dijkstra(long long source) {
     return distances;
 }
 
-// Dial O(m + C) -- m-number of edges, #n-number of verticles, C-max_cost
 std::vector<long long> Graph::dial(long long source, long long max_cost) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
     distances[source] = 0;
@@ -104,7 +102,6 @@ std::vector<long long> Graph::dial(long long source, long long max_cost) {
     return distances;
 }
 
-// RadixHeap O(m + nln(C)) -- m-number of edges, #n-number of verticles, C-max_cost
 std::vector<long long> Graph::radix_heap(long long source) {
     std::vector<long long> distances(num_vertices_, std::numeric_limits<long long>::max());
     RadixHeap heap;
