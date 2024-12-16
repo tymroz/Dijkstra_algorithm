@@ -1,3 +1,0 @@
-f test/Long-C-1p/Long-C.12.0.gr test/Long-C-1p/Long-C.12.0.p2p
-g 1048576 4063200 2 16777213
-d 1 1048576 319535649343

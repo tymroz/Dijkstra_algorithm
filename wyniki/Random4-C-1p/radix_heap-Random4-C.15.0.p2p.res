@@ -1,3 +1,0 @@
-f test/Random4-C-1p/Random4-C.15.0.gr test/Random4-C-1p/Random4-C.15.0.p2p
-g 1048576 4194304 143 1073741424
-d 1 1048576 3471241820
