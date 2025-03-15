@@ -21,3 +21,5 @@ Istnieje również opcja uruchomienia z flagą -p2p. Przykład:
 dijkstra -d graph.gr -ss pairs.p2p -oss results.p2p.res
 ```
 Program wyznaczy długość najkrótszej ścieżki między parą wierzchołków.
+
+Programy były testowane na danych z [9th DIMACS Implementation Challenge – Shortest Paths](https://www.diag.uniroma1.it/challenge9/download.shtml)
